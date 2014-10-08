@@ -1,0 +1,45 @@
+div.controls-container {
+	margin: 10px 10px 10px 10px;
+
+	div.control {
+		display: inline-block;
+
+		&:not(:last-child) {
+			border-right: 2px dotted lightgray;
+			padding-right: 5px;
+		}
+		&:not(:first-child) {
+			padding-left: 5px;
+		}
+		label {
+			margin-right: 5px;
+		}
+		input {
+			width: 5em;
+		}
+	}
+}
+
+div.cohorts-table {
+	display: table;
+	border-collapse: collapse;
+
+	div.cohorts-table-row {
+		border-top: 1px dotted lightgray;
+	    display: table-row;
+
+	    div.cohorts-table-header {
+	    	display: table-cell;
+	    	font-weight: bold;
+	    	padding: 10px 10px 10px 10px;
+	    	text-align: center;
+	    }
+
+	    div.cohorts-table-column {
+	    	display: table-cell;
+	    	padding: 10px 10px 10px 10px;
+	    	text-align: center;
+	    	white-space: nowrap;
+	    }
+	}
+}
