@@ -64,7 +64,7 @@ var CohortsTableComponent = React.createClass({
 		var dayHeaders = [];
 		for (var i = 0; i < this.props.numCohorts; i++) {
 			dayHeaders.push(
-				<div className="cohorts-table-header" key={i}>{i * 7}-{i*7 + 7} days</div>
+				<div className="cohorts-table-header" key={i}>{i * this.props.cohortDuration}-{(i+1) * this.props.cohortDuration} days</div>
 			)
 		}
 

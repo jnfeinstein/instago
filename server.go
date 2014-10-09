@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 	//"runtime"
 )
 
@@ -38,25 +39,24 @@ type CohortBlob struct {
 func analyzeCohort(db *app.Database, c *Cohort, end time.Time, d time.Duration) ([]CohortDetails, error) {
 	details := []CohortDetails{}
 	userIds := strings.Join(c.UserIds(), ",")
-	for t := c.Start; t.Before(end); t = t.Add(d) {
+	db.CacheFirstOrders(userIds)
+	for t,i := c.Start, 0; t.Before(end); t,i = t.Add(d), i +1 {
+		startNumDays := int64(time.Duration(i) * d / dayDuration)
+		endNumDays := int64(time.Duration(i+1) * d / dayDuration)
 		queryOrderers := `SELECT COUNT(DISTINCT(u.id)) FROM users u
-				 		  JOIN ORDERS o ON o.user_id = u.id
-				 		  WHERE u.id IN (` + userIds + `)
-						  AND o.created_at >= ?
-				 		  AND o.created_at < ?`
-		countOrderers, err := db.SelectInt(queryOrderers, t, t.Add(d))
+											JOIN ORDERS o ON o.user_id = u.id
+											WHERE u.id IN (` + userIds + `)
+											AND o.created_at >= DATETIME(u.created_at, '+` + strconv.FormatInt(startNumDays,10) +` days')
+											AND o.created_at < DATETIME(u.created_at, '+` + strconv.FormatInt(endNumDays,10) +` days')`
+		countOrderers, err := db.SelectInt(queryOrderers)
 		if err != nil {
 			return details, err
 		}
 		queryFirsts := `SELECT COUNT(DISTINCT(u.id)) FROM users u
-						JOIN (
-								SELECT user_id, min(created_at) AS created_at FROM orders o
-								WHERE o.user_id IN (` + userIds + `)
-								GROUP BY o.user_id
-							 ) z ON z.user_id = u.id
-						WHERE u.id IN (` + userIds + `)
-					    AND z.created_at >= ?
-			 		    AND z.created_at < ?`
+										JOIN cached_first_orders z ON z.user_id = u.id
+										WHERE u.id IN (` + userIds + `)
+										AND z.created_at >= DATETIME(u.created_at, '+` + strconv.FormatInt(startNumDays,10) +` days')
+										AND z.created_at < DATETIME(u.created_at, '+` + strconv.FormatInt(endNumDays,10) +` days')`
 		countFirsts, err := db.SelectInt(queryFirsts, t, t.Add(d))
 		if err != nil {
 			return details, err

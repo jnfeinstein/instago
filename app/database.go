@@ -63,3 +63,8 @@ func (db *Database) Cohorts(d time.Duration, length time.Duration) ([]*Cohort, e
 	}
 	return cohorts, nil
 }
+
+func (db *Database) CacheFirstOrders(userIds string) {
+	db.Exec("DROP TABLE IF EXISTS cached_first_orders")
+	db.Exec("CREATE TEMP TABLE cached_first_orders AS SELECT user_id, min(created_at) AS created_at FROM orders o WHERE o.user_id IN (" + userIds + ") GROUP BY o.user_id")
+}
